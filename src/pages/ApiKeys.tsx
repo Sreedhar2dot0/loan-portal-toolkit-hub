@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Card, 
@@ -19,7 +18,7 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Copy, RefreshCw, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
+import { Copy, Zap, Trash2, CheckCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ApiKey {
@@ -127,109 +126,6 @@ const ApiKeys: React.FC = () => {
                 Create and manage API keys for accessing the Loan API
               </CardDescription>
             </div>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create API Key
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{showNewKey ? "Your New API Key" : "Create API Key"}</DialogTitle>
-                  <DialogDescription>
-                    {showNewKey 
-                      ? "Please copy your API key now. You won't be able to see it again." 
-                      : "Enter a name for your API key to help you identify it later."}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                {!showNewKey ? (
-                  <>
-                    <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                        <label htmlFor="name">API Key Name</label>
-                        <Input 
-                          id="name" 
-                          value={newKeyName} 
-                          onChange={(e) => setNewKeyName(e.target.value)} 
-                          placeholder="e.g. Development Key"
-                        />
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <label htmlFor="environment">Environment</label>
-                        <div className="flex gap-2">
-                          <Button 
-                            type="button" 
-                            variant={environment === "UAT" ? "default" : "outline"} 
-                            onClick={() => setEnvironment("UAT")}
-                          >
-                            <Badge className="bg-amber-500 mr-2">UAT</Badge> Test
-                          </Button>
-                          <Button 
-                            type="button" 
-                            variant={environment === "PROD" ? "default" : "outline"} 
-                            onClick={() => setEnvironment("PROD")}
-                          >
-                            <Badge className="bg-green-500 mr-2">PROD</Badge> Production
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button onClick={generateApiKey}>Generate API Key</Button>
-                    </DialogFooter>
-                  </>
-                ) : (
-                  <>
-                    <div className="grid gap-4 py-4">
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 flex items-start">
-                        <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-yellow-800">Important</p>
-                          <p className="text-sm text-yellow-700">
-                            This key will only be displayed once. Please copy it now and store it securely.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid gap-2">
-                        <label htmlFor="apiKey">Your New API Key</label>
-                        <div className="flex">
-                          <Input 
-                            id="apiKey" 
-                            value={newKeyValue} 
-                            readOnly 
-                            className="font-mono bg-gray-50"
-                          />
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="icon"
-                            className="ml-2" 
-                            onClick={() => copyToClipboard(newKeyValue)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button 
-                        onClick={() => {
-                          setShowNewKey(false);
-                          setNewKeyName("");
-                          setNewKeyValue("");
-                        }}
-                      >
-                        Done
-                      </Button>
-                    </DialogFooter>
-                  </>
-                )}
-              </DialogContent>
-            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
@@ -254,8 +150,8 @@ const ApiKeys: React.FC = () => {
                 </div>
                 <div className="flex space-x-2 mt-3 md:mt-0">
                   <Button variant="outline" size="sm" className="h-8">
-                    <RefreshCw className="h-3.5 w-3.5 mr-1" />
-                    <span>Rotate</span>
+                    <Zap className="h-3.5 w-3.5 mr-1" />
+                    <span>Generate</span>
                   </Button>
                   <Button 
                     variant="destructive" 
