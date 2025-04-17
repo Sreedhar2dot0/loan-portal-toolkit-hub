@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import ApiKeys from "./pages/ApiKeys";
+import ApiManagement from "./pages/ApiManagement";
 import Documentation from "./pages/Documentation";
 import Collections from "./pages/Collections";
 import Environments from "./pages/Environments";
@@ -34,6 +35,14 @@ const App = () => (
             element={
               <MainLayout>
                 <ApiKeys />
+              </MainLayout>
+            } 
+          />
+          <Route 
+            path="/api-management" 
+            element={
+              <MainLayout>
+                <ApiManagement />
               </MainLayout>
             } 
           />

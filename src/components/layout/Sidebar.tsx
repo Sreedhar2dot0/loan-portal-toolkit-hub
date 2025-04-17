@@ -12,6 +12,7 @@ import {
   Layers,
   HelpCircle,
   LogOut,
+  Shield,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -27,6 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ className }) => {
 
   const navItems = [
     { name: "Dashboard", path: "/", icon: <Home size={20} /> },
+    { name: "API Management", path: "/api-management", icon: <Shield size={20} /> },
     { name: "API Keys", path: "/api-keys", icon: <Key size={20} /> },
     { name: "Documentation", path: "/documentation", icon: <FileText size={20} /> },
     { name: "Collections", path: "/collections", icon: <Download size={20} /> },
