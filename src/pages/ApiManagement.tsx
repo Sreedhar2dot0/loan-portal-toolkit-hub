@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Tabs, 
@@ -45,11 +44,15 @@ import {
   Check, 
   Copy, 
   CheckCircle, 
-  AlertTriangle
+  AlertTriangle,
+  Globe,
+  Server,
+  BarChart,
+  Clock,
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Types for our data
 interface ApiKey {
   id: string;
   name: string;
@@ -73,7 +76,25 @@ interface Webhook {
   createdAt: Date;
 }
 
-// Sample data for each environment
+interface Endpoint {
+  id: string;
+  path: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  status: "Operational" | "Degraded Performance" | "Maintenance";
+  latency: string;
+  description?: string;
+}
+
+interface EnvironmentDetails {
+  baseUrl: string;
+  uptime: string;
+  latency: string;
+  version: string;
+  status: "Operational" | "Degraded Performance" | "Maintenance";
+  notes: string[];
+  rateLimit: string;
+}
+
 const sampleApiKeys: Record<string, ApiKey[]> = {
   dev: [
     {
@@ -161,40 +182,181 @@ const sampleWebhooks: Record<string, Webhook[]> = {
   ]
 };
 
+const sampleEndpoints: Record<string, Endpoint[]> = {
+  dev: [
+    {
+      id: "1",
+      path: "/applications",
+      method: "GET",
+      status: "Operational",
+      latency: "150ms",
+      description: "Retrieve all loan applications"
+    },
+    {
+      id: "2",
+      path: "/applications",
+      method: "POST",
+      status: "Operational",
+      latency: "200ms",
+      description: "Create a new loan application"
+    },
+    {
+      id: "3",
+      path: "/applications/{id}",
+      method: "GET",
+      status: "Operational",
+      latency: "120ms",
+      description: "Retrieve a specific loan application"
+    }
+  ],
+  uat: [
+    {
+      id: "1",
+      path: "/applications",
+      method: "GET",
+      status: "Operational",
+      latency: "120ms",
+      description: "Retrieve all loan applications"
+    },
+    {
+      id: "2",
+      path: "/applications",
+      method: "POST",
+      status: "Operational",
+      latency: "180ms",
+      description: "Create a new loan application"
+    },
+    {
+      id: "3",
+      path: "/applications/{id}",
+      method: "GET",
+      status: "Operational",
+      latency: "95ms",
+      description: "Retrieve a specific loan application"
+    },
+    {
+      id: "4",
+      path: "/applications/{id}",
+      method: "PATCH",
+      status: "Operational",
+      latency: "140ms",
+      description: "Update a loan application"
+    }
+  ],
+  prod: [
+    {
+      id: "1",
+      path: "/applications",
+      method: "GET",
+      status: "Operational",
+      latency: "90ms",
+      description: "Retrieve all loan applications"
+    },
+    {
+      id: "2",
+      path: "/applications",
+      method: "POST",
+      status: "Operational",
+      latency: "150ms",
+      description: "Create a new loan application"
+    },
+    {
+      id: "3",
+      path: "/applications/{id}",
+      method: "GET",
+      status: "Operational",
+      latency: "75ms",
+      description: "Retrieve a specific loan application"
+    },
+    {
+      id: "4",
+      path: "/applications/{id}",
+      method: "PATCH",
+      status: "Operational",
+      latency: "120ms",
+      description: "Update a loan application"
+    },
+    {
+      id: "5",
+      path: "/applications/{id}",
+      method: "DELETE",
+      status: "Operational",
+      latency: "100ms",
+      description: "Delete a loan application"
+    }
+  ]
+};
+
+const environmentDetails: Record<string, EnvironmentDetails> = {
+  dev: {
+    baseUrl: "https://api-dev.loanportal.example",
+    uptime: "99.5%",
+    latency: "180ms",
+    version: "v1.2.3-dev",
+    status: "Operational",
+    notes: [
+      "Development environment for testing integrations",
+      "Data is reset every Sunday at 00:00 UTC",
+      "Sandbox environment - no real transactions processed"
+    ],
+    rateLimit: "50 requests per minute"
+  },
+  uat: {
+    baseUrl: "https://api-uat.loanportal.example",
+    uptime: "99.95%",
+    latency: "145ms",
+    version: "v1.2.0",
+    status: "Operational",
+    notes: [
+      "User Acceptance Testing environment",
+      "Data is persistent but not production data",
+      "Use for final validation before production"
+    ],
+    rateLimit: "100 requests per minute"
+  },
+  prod: {
+    baseUrl: "https://api.loanportal.example",
+    uptime: "99.99%",
+    latency: "98ms",
+    version: "v1.1.8",
+    status: "Operational",
+    notes: [
+      "Production environment for live transactions",
+      "All activity is logged and monitored",
+      "High availability infrastructure with redundancy"
+    ],
+    rateLimit: "500 requests per minute"
+  }
+};
+
 const ApiManagement: React.FC = () => {
-  // State for environment selection
   const [currentEnvironment, setCurrentEnvironment] = useState<"dev" | "uat" | "prod">("dev");
   
-  // States for data based on environment
   const [apiKeys, setApiKeys] = useState<Record<string, ApiKey[]>>(sampleApiKeys);
   const [ipAddresses, setIpAddresses] = useState<Record<string, IpAddress[]>>(sampleIpAddresses);
   const [webhooks, setWebhooks] = useState<Record<string, Webhook[]>>(sampleWebhooks);
+  const [endpoints, setEndpoints] = useState<Record<string, Endpoint[]>>(sampleEndpoints);
   
-  // New item form states
   const [newKeyName, setNewKeyName] = useState("");
   const [newIpAddress, setNewIpAddress] = useState("");
   const [newIpDescription, setNewIpDescription] = useState("");
   const [newWebhookUrl, setNewWebhookUrl] = useState("");
   const [newWebhookEvents, setNewWebhookEvents] = useState("");
   
-  // State for displaying a newly generated key
   const [showNewKey, setShowNewKey] = useState(false);
   const [newKeyValue, setNewKeyValue] = useState("");
 
-  // Helper to format dates
   const formatDate = (date: Date | null) => {
     if (!date) return "Never used";
     return date.toLocaleDateString();
   };
 
-  // Generate a new API key
   const generateApiKey = () => {
     if (!newKeyName.trim()) {
       toast.error("Please enter a name for your API key");
       return;
     }
 
-    // Generate a random key (in a real app, this would come from the backend)
     const prefix = 
       currentEnvironment === "dev" ? "loan_pk_dev_" : 
       currentEnvironment === "uat" ? "loan_pk_uat_" : "loan_pk_prod_";
@@ -203,7 +365,6 @@ const ApiManagement: React.FC = () => {
     setNewKeyValue(randomKey);
     setShowNewKey(true);
     
-    // Add the new key to the list
     const newKey: ApiKey = {
       id: (apiKeys[currentEnvironment].length + 1).toString(),
       name: newKeyName,
@@ -221,7 +382,6 @@ const ApiManagement: React.FC = () => {
     toast.success("API key generated successfully!");
   };
 
-  // Delete an API key
   const deleteApiKey = (id: string) => {
     setApiKeys({
       ...apiKeys,
@@ -230,14 +390,12 @@ const ApiManagement: React.FC = () => {
     toast.success("API key deleted successfully");
   };
 
-  // Add new IP address
   const addIpAddress = () => {
     if (!newIpAddress.trim()) {
       toast.error("Please enter an IP address");
       return;
     }
 
-    // Validate IP address format (simple validation)
     const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
     if (!ipRegex.test(newIpAddress)) {
       toast.error("Please enter a valid IP address");
@@ -261,7 +419,6 @@ const ApiManagement: React.FC = () => {
     toast.success("IP address added successfully");
   };
 
-  // Delete an IP address
   const deleteIpAddress = (id: string) => {
     setIpAddresses({
       ...ipAddresses,
@@ -270,14 +427,12 @@ const ApiManagement: React.FC = () => {
     toast.success("IP address removed successfully");
   };
 
-  // Add new webhook
   const addWebhook = () => {
     if (!newWebhookUrl.trim()) {
       toast.error("Please enter a webhook URL");
       return;
     }
 
-    // Simple URL validation
     try {
       new URL(newWebhookUrl);
     } catch (_) {
@@ -310,7 +465,6 @@ const ApiManagement: React.FC = () => {
     toast.success("Webhook added successfully");
   };
 
-  // Toggle webhook active status
   const toggleWebhookStatus = (id: string) => {
     setWebhooks({
       ...webhooks,
@@ -323,7 +477,6 @@ const ApiManagement: React.FC = () => {
     });
   };
 
-  // Delete a webhook
   const deleteWebhook = (id: string) => {
     setWebhooks({
       ...webhooks,
@@ -332,19 +485,37 @@ const ApiManagement: React.FC = () => {
     toast.success("Webhook removed successfully");
   };
 
-  // Copy to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   };
 
-  // Environment badge color
   const getEnvironmentColor = (env: string) => {
     switch (env) {
       case "dev": return "bg-blue-500";
       case "uat": return "bg-amber-500";
       case "prod": return "bg-green-500";
       default: return "";
+    }
+  };
+
+  const getMethodColor = (method: string) => {
+    switch (method) {
+      case "GET": return "bg-blue-500";
+      case "POST": return "bg-green-500";
+      case "PUT": return "bg-amber-500";
+      case "PATCH": return "bg-purple-500";
+      case "DELETE": return "bg-red-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Operational": return "bg-green-500";
+      case "Degraded Performance": return "bg-amber-500";
+      case "Maintenance": return "bg-blue-500";
+      default: return "bg-gray-500";
     }
   };
 
@@ -359,7 +530,6 @@ const ApiManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Environment selector */}
       <Card>
         <CardHeader>
           <CardTitle>Environment</CardTitle>
@@ -394,12 +564,89 @@ const ApiManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* API Management Tabs */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Environment Details</CardTitle>
+              <CardDescription>
+                Information about the {currentEnvironment.toUpperCase()} environment
+              </CardDescription>
+            </div>
+            <Badge className={getStatusColor(environmentDetails[currentEnvironment].status)}>
+              {environmentDetails[currentEnvironment].status}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <Server className="h-5 w-5 text-primary mr-2" />
+                <span className="font-medium">Base URL</span>
+              </div>
+              <div className="bg-muted p-2 rounded font-mono text-sm break-all">
+                {environmentDetails[currentEnvironment].baseUrl}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <Info className="h-5 w-5 text-primary mr-2" />
+                <span className="font-medium">API Version</span>
+              </div>
+              <div className="text-sm">
+                {environmentDetails[currentEnvironment].version}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="font-medium">Statistics</div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  <div>
+                    <div className="text-sm font-medium">Uptime</div>
+                    <div className="text-sm text-muted-foreground">{environmentDetails[currentEnvironment].uptime}</div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 text-blue-500 mr-2" />
+                  <div>
+                    <div className="text-sm font-medium">Avg. Latency</div>
+                    <div className="text-sm text-muted-foreground">{environmentDetails[currentEnvironment].latency}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <div className="font-medium mb-2">Environment Notes</div>
+            <ul className="space-y-2 text-sm">
+              {environmentDetails[currentEnvironment].notes.map((note, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>{note}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2 text-sm">
+              <span className="font-medium">Rate Limit:</span> {environmentDetails[currentEnvironment].rateLimit}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="api-keys" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="api-keys" className="flex items-center gap-2">
             <Key className="h-4 w-4" />
             <span>API Keys</span>
+          </TabsTrigger>
+          <TabsTrigger value="endpoints" className="flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            <span>Endpoints</span>
           </TabsTrigger>
           <TabsTrigger value="ip-whitelist" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -411,7 +658,6 @@ const ApiManagement: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* API Keys Tab */}
         <TabsContent value="api-keys">
           <Card>
             <CardHeader>
@@ -535,7 +781,81 @@ const ApiManagement: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* IP Whitelisting Tab */}
+        <TabsContent value="endpoints">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Endpoints for {currentEnvironment.toUpperCase()}</CardTitle>
+                  <CardDescription>
+                    Available API endpoints in the {currentEnvironment.toUpperCase()} environment
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-md overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Endpoint</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Latency</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {endpoints[currentEnvironment].length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                          No endpoints available in this environment
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      endpoints[currentEnvironment].map((endpoint) => (
+                        <TableRow key={endpoint.id}>
+                          <TableCell>
+                            <Badge className={getMethodColor(endpoint.method)}>
+                              {endpoint.method}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {endpoint.path}
+                          </TableCell>
+                          <TableCell>
+                            {endpoint.description || "—"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className={`h-2 w-2 rounded-full ${getStatusColor(endpoint.status)} mr-2`}></div>
+                              {endpoint.status}
+                            </div>
+                          </TableCell>
+                          <TableCell>{endpoint.latency}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              <div className="mt-4 p-4 bg-muted rounded-md">
+                <div className="flex items-center mb-2">
+                  <Info className="h-4 w-4 mr-2" />
+                  <span className="font-medium">Base URL</span>
+                </div>
+                <div className="font-mono text-sm break-all">
+                  {environmentDetails[currentEnvironment].baseUrl}
+                </div>
+                <p className="text-sm mt-2">
+                  Append the endpoint path to this base URL to make API requests.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="ip-whitelist">
           <Card>
             <CardHeader>
@@ -611,7 +931,6 @@ const ApiManagement: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Webhooks Tab */}
         <TabsContent value="webhooks">
           <Card>
             <CardHeader>
